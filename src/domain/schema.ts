@@ -16,7 +16,7 @@ export const betSchema = z.object({
   returnCents: z.number().int().nonnegative().optional(),
   settledAt: z.string().optional(),
   notes: z.string().optional(),
-  source: z.enum(["manual", "bet2win_csv", "bet365_csv", "bet365_screenshot"]),
+  source: z.enum(["manual", "bet2win_csv", "bet365_csv", "bet365_screenshot", "bet365_pdf"]),
   externalBetId: z.string().optional(),
   createdAt: z.string().min(1),
   updatedAt: z.string().min(1),
@@ -70,7 +70,7 @@ export const extractionBetSchema = z.object({
 })
 
 export const extractionResponseSchema = z.object({
-  layout: z.enum(["receipt", "history_list", "mixed", "unknown"]),
+  layout: z.enum(["receipt", "history_list", "statement", "mixed", "unknown"]),
   bets: z.array(extractionBetSchema),
   warnings: z.array(z.string()),
 })

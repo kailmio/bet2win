@@ -1,7 +1,7 @@
 export const BET_STATUSES = ["pending", "won", "lost", "void", "cashed_out"] as const
 export type BetStatus = (typeof BET_STATUSES)[number]
 
-export type BetSource = "manual" | "bet2win_csv" | "bet365_csv" | "bet365_screenshot"
+export type BetSource = "manual" | "bet2win_csv" | "bet365_csv" | "bet365_screenshot" | "bet365_pdf"
 
 export interface Bet {
   id: string

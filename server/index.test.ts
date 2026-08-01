@@ -14,6 +14,24 @@ describe("screenshot extraction endpoint", () => {
     expect(response.body.bets[0].externalBetId).toBe("B1")
   })
 
+  it("sends a PDF statement as a low-detail file input", async () => {
+    const parse = vi.fn().mockResolvedValue({ output_parsed: { ...validResult, layout: "statement" } })
+    const client = { responses: { parse } }
+    const response = await request(createApp(client as never)).post("/api/import/bet365/extract").set({ ...headers, "X-Bet2Win-Request": "pdf-import" }).attach("document", Buffer.from("%PDF-1.7 sample"), { filename: "june.pdf", contentType: "application/pdf" })
+    expect(response.status).toBe(200)
+    const content = parse.mock.calls[0][0].input[0].content
+    expect(content).toEqual(expect.arrayContaining([expect.objectContaining({ type: "input_file", filename: "bet365-statement.pdf", detail: "low", file_data: expect.stringMatching(/^data:application\/pdf;base64,/) })]))
+    expect(content[0].text).toContain("classify it as lost with returnAud 0")
+  })
+
+  it("rejects mixed screenshot and PDF batches", async () => {
+    const parse = vi.fn()
+    const app = createApp({ responses: { parse } } as never)
+    const response = await request(app).post("/api/import/bet365/extract").set(headers).attach("images", Buffer.from("image"), { filename: "receipt.png", contentType: "image/png" }).attach("document", Buffer.from("%PDF"), { filename: "statement.pdf", contentType: "application/pdf" })
+    expect(response.status).toBe(400)
+    expect(parse).not.toHaveBeenCalled()
+  })
+
   it("rejects malformed structured output", async () => {
     const client = { responses: { parse: vi.fn().mockResolvedValue({ output_parsed: { layout: "receipt", bets: "bad", warnings: [] } }) } }
     const response = await request(createApp(client as never)).post("/api/import/bet365/extract").set(headers).attach("images", Buffer.from("image"), { filename: "receipt.png", contentType: "image/png" })
